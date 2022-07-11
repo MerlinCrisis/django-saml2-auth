@@ -20,7 +20,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
-from django.utils.http import is_safe_url
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from rest_auth.utils import jwt_encode
 
@@ -28,17 +28,7 @@ from rest_auth.utils import jwt_encode
 # default User or custom User. Now both will work.
 User = get_user_model()
 
-try:
-    import urllib2 as _urllib
-except:
-    import urllib.request as _urllib
-    import urllib.error
-    import urllib.parse
-
-if parse_version(get_version()) >= parse_version('1.7'):
-    from django.utils.module_loading import import_string
-else:
-    from django.utils.module_loading import import_by_path as import_string
+from django.utils.module_loading import import_string
 
 
 def _default_next_url():
@@ -58,11 +48,7 @@ def get_current_domain(r):
 
 
 def get_reverse(objs):
-    '''In order to support different django version, I have to do this '''
-    if parse_version(get_version()) >= parse_version('2.0'):
-        from django.urls import reverse
-    else:
-        from django.core.urlresolvers import reverse
+    from django.urls import reverse
     if objs.__class__.__name__ not in ['list', 'tuple']:
         objs = [objs]
 
@@ -228,12 +214,8 @@ def acs(r):
 
 
 def signin(r):
-    try:
-        import urlparse as _urlparse
-        from urllib import unquote
-    except:
-        import urllib.parse as _urlparse
-        from urllib.parse import unquote
+    import urllib.parse as _urlparse
+    from urllib.parse import unquote
     next_url = r.GET.get('next', _default_next_url())
 
     try:
@@ -243,10 +225,7 @@ def signin(r):
         next_url = r.GET.get('next', _default_next_url())
 
     # Only permit signin requests where the next_url is a safe URL
-    if parse_version(get_version()) >= parse_version('2.0'):
-        url_ok = is_safe_url(next_url, None)
-    else:
-        url_ok = is_safe_url(next_url)
+    url_ok = url_has_allowed_host_and_scheme(next_url, None)
 
     if not url_ok:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
