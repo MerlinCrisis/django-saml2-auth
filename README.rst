@@ -156,6 +156,7 @@ How to use?
             'TRIGGER': {
                 'CREATE_USER': 'path.to.your.new.user.hook.method',
                 'BEFORE_LOGIN': 'path.to.your.login.hook.method',
+                'AFTER_LOGIN': 'path.to.your.login.hook.method'
             },
             'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
             'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
@@ -184,9 +185,9 @@ Explanation
 
 **TRIGGER** Hooks to trigger additional actions during user login and creation
 flows. These TRIGGER hooks are strings containing a `dotted module name <https://docs.python.org/3/tutorial/modules.html#packages>`_
-which point to a method to be called. The referenced method should accept a
-single argument which is a dictionary of attributes and values sent by the
-identity provider, representing the user's identity.
+which point to a method to be called. Methods that accept a user dict as parameter
+will be given a dictionary of attributes and values sent by the identity provider,
+representing the user's identity.
 
 **TRIGGER.CREATE_USER** A method to be called upon new user creation. This
 method will be called before the new user is logged in and after the user's
@@ -195,6 +196,12 @@ record is created. This method should accept ONE parameter of user dict.
 **TRIGGER.BEFORE_LOGIN** A method to be called when an existing user logs in.
 This method will be called before the user is logged in and after user
 attributes are returned by the SAML2 identity provider. This method should accept ONE parameter of user dict.
+
+**TRIGGER.AFTER_LOGIN** A method to be called after the user was successfully logged in.
+This method will be called after the new session for the logged in user
+was created and before the user is redirected to the success URL.
+This method should accept ONE parameter that is the current request.
+You can access the authenticated user through 'request.user'.
 
 **ASSERTION_URL** A URL to validate incoming SAML responses against. By default,
 django-saml2-auth will validate the SAML response's Service Provider address
@@ -275,6 +282,8 @@ How to Contribute
 
 Release Log
 ===========
+
+2.3.0: Add AFTER_LOGIN hook
 
 2.2.2: Add setting LOGIN_CASE_SENSITIVE and tighten compatability to Django >= 4.0
 

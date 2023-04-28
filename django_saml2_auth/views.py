@@ -194,6 +194,9 @@ def acs(r):
     else:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
+    if settings.SAML2_AUTH.get('TRIGGER', {}).get('AFTER_LOGIN', None):
+        import_string(settings.SAML2_AUTH['TRIGGER']['AFTER_LOGIN'])(r)
+
     if settings.SAML2_AUTH.get('USE_JWT') is True:
         # We use JWT auth send token to frontend
         jwt_token = jwt_encode(target_user)
